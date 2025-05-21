@@ -5,7 +5,7 @@ CFLAGS = -Iinclude -Wall -Wextra -g
 # === Files and Paths ===
 SRC = src/bigint.c
 TEST = test/libtest.c
-OUT = libtest
+OUT = libtest.out
 
 # === Default Target ===
 all: $(OUT)

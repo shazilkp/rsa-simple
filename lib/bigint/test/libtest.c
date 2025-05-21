@@ -3,6 +3,12 @@
 
 
 int main(){
-	BigInt x = big_int_constructor(0, 4, 0x446F6E27742067, 0x6F20757020746865, 0x72652E2E2E204974, 0x2773206461726B2E);
-	printf(x.hex);
+	BigInt a = big_int_constructor(0,2, (uint32_t)0xFFFFFFFF, (uint32_t)0xFFFFFFFF);
+	BigInt b = big_int_constructor(0,1, (uint32_t)0x1);
+	BigInt c = big_int_add(b,a);
+	
+	
+	big_int_print(c,0);
+	big_int_print(c,1);
+	
 }
