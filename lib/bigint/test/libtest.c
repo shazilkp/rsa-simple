@@ -3,12 +3,17 @@
 
 
 int main(){
-	BigInt a = big_int_constructor(0,2, (uint32_t)0xFFFFFFFF, (uint32_t)0xFFFFFFFF);
-	BigInt b = big_int_constructor(0,1, (uint32_t)0x1);
-	BigInt c = big_int_add(b,a);
+	BigInt a = big_int_constructor(0,2, 0x00000000,0x00000001);
+	BigInt b = big_int_constructor(0,1, 0x00000002);
+	BigInt c;
+	
+	big_int_sub(&b,&a,&c);
 	
 	
-	big_int_print(c,0);
-	big_int_print(c,1);
+	big_int_print(&c,0);
+	big_int_print(&c,1);
+	
+	big_int_destructor(&a);
+	big_int_destructor(&b);
 	
 }

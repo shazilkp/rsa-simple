@@ -11,7 +11,9 @@ typedef struct {
 BigInt big_int_constructor(short sign, size_t size, ...);
 void big_int_destructor(BigInt * bignum);
 
-BigInt big_int_add(BigInt a, BigInt b);
+void big_int_add(BigInt *a, BigInt *b,BigInt *c);
+void big_int_sub(BigInt *a, BigInt *b,BigInt *c);
+void big_int_inc(BigInt *a);
 
-void big_int_print(BigInt a,int mode);
+void big_int_print(BigInt * a,int mode);
 void big_int_swap(BigInt * a, BigInt * b);
