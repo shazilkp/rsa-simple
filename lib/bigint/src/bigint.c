@@ -15,7 +15,7 @@ void big_int_swap(BigInt * a, BigInt * b){
 }
 
 void big_int_print(BigInt *a,int mode){
-	if(a->sign){
+	if(a->sign == 1){
 		printf("-");
 	}
 	if(!mode){
@@ -109,10 +109,10 @@ void big_int_add(BigInt *a, BigInt *b,BigInt *c){
 }
 
 void big_int_sub(BigInt *a, BigInt *b,BigInt *c){
-	//a is always the larger number 
 	size_t sizeA = a->size;
 	size_t sizeB = b->size;
 	size_t sizeC = (sizeA > sizeB ? sizeA : sizeB);
+	printf("%zu %zu %zu\n",sizeA,sizeB,sizeC);
 	
 	c->integer = malloc(sizeof(uint32_t) * sizeC);
 	c->size = sizeC;
@@ -120,38 +120,29 @@ void big_int_sub(BigInt *a, BigInt *b,BigInt *c){
 	short int borrow = 0;
 	
 	size_t i;
-	for(i = 0 ; i < sizeB ; i++){
+	for(i = 0 ; i < sizeC ; i++){
 		uint64_t temp1 = (i < sizeA ? (uint64_t)a->integer[i] : (uint64_t)0x0)  + (MAXVAL + 1);
-		uint64_t temp2 = (uint64_t)b->integer[i] + (uint64_t)borrow;
+		uint64_t temp2 = (i < sizeB ? (uint64_t)b->integer[i] : (uint64_t)0x0)  + (uint64_t)borrow;
 		uint64_t res = temp1 - temp2;
 		c->integer[i] = (res & MAXVAL);	
 		borrow = (res <= MAXVAL);
+	}
 		
+	if(borrow){
+		c->sign = 1;
+		for(i = 0 ; i < sizeC ; i++){
+			c->integer[i] = ~c->integer[i];
+		}
+		big_int_inc(c);
 	}
 	
-	for(i = sizeB ; i < sizeA ; i++){
-		uint64_t temp1 = (uint64_t)a->integer[i] + (MAXVAL + 1);
-		uint64_t temp2 = (uint64_t)borrow;
-		uint64_t res = temp1 - temp2;
-		c->integer[i] = (res & MAXVAL);	
-		borrow = (res <= MAXVAL);
-	}
-	
-	
-	i = sizeA-1;
-	while( i > 0 && c->integer[i] == 0){
+	i = sizeC-1;
+	while( i > 0 && c->integer[i] == 0x0){
 		i--;
 	}
 	c->integer = realloc(c->integer,sizeof(uint32_t) * (i+1));
 	c->size = i + 1;
 	
-	if(borrow){
-		c->sign = 1;
-		for(i = 0 ; i < c->size ; i++){
-			c->integer[i] = ~c->integer[i];
-		}
-		big_int_inc(c);
-	}
 }
 
 
