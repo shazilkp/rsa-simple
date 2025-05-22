@@ -7,6 +7,20 @@
 #define MAXVAL 0xFFFFFFFFULL 
 
 //stored as little endian
+#include <stdint.h>
+
+int count_leading_zeros(uint32_t x) {
+    if (x == 0) return 32;
+
+    int count = 0;
+    if ((x >> 16) == 0) { count += 16; x <<= 16; }
+    if ((x >> 24) == 0) { count += 8;  x <<= 8;  }
+    if ((x >> 28) == 0) { count += 4;  x <<= 4;  }
+    if ((x >> 30) == 0) { count += 2;  x <<= 2;  }
+    if ((x >> 31) == 0) { count += 1; }
+
+    return count;
+}
 
 void big_int_swap(BigInt * a, BigInt * b){
 	BigInt t = *a;
@@ -47,6 +61,18 @@ BigInt big_int_constructor(short sign, size_t size, ...){
 
 void big_int_destructor(BigInt * bignum){
 	free(bignum->integer);
+}
+
+BigInt big_int_from_uint64_t(uint64_t num){
+	return big_int_constructor(0,2,(uint32_t)(num & MAXVAL),(uint32_t)(num >> 32));
+}
+
+BigInt big_int_from_uint32_t(uint32_t num){
+	return big_int_constructor(0,1,(uint32_t)(num & MAXVAL));
+}
+
+int big_int_count_leading_zeros(BigInt *a){
+	return count_leading_zeros(a->integer[(a->size)-1]);
 }
 
 void big_int_inc(BigInt *a){
@@ -144,5 +170,237 @@ void big_int_sub(BigInt *a, BigInt *b,BigInt *c){
 	c->size = i + 1;
 	
 }
+
+
+
+void big_int_mult(BigInt *a, BigInt *b,BigInt *c){
+	if(b->size > a->size){
+		big_int_swap(a,b);
+	}
+	
+	//a is always the larger number 
+	size_t sizeA = a->size;
+	size_t sizeB = b->size;
+	size_t sizeC = sizeA + sizeB;
+	
+	c->sign = a->sign * b->sign;
+	
+	c->integer = malloc(sizeof(uint32_t) * sizeC);
+	memset(c->integer, 0, sizeof(uint32_t) * sizeC); //
+	c->size = sizeC;
+	
+	
+	for(size_t i = 0 ; i < sizeB ; ++i){	//for all elemnets of b
+		uint32_t carry = 0x0;
+
+		size_t j;
+		for(j = i ; j < sizeA + i ;  j++){//for all elements of a
+			uint64_t product = (uint64_t)a->integer[j-i] * (uint64_t)b->integer[i];
+			uint64_t sum = (uint64_t)c->integer[j] + product + carry;
+			c->integer[j] = (uint32_t)(sum & MAXVAL);
+			carry = (uint32_t)(sum >> 32);
+		}
+		
+		if(carry){
+			uint64_t sum = (uint64_t)c->integer[j] + carry;
+			c->integer[j] = (uint32_t)(sum & MAXVAL);
+		}
+	}
+	
+	size_t i = sizeC-1;
+	while( i > 0 && c->integer[i] == 0x0){
+		i--;
+	}
+	c->integer = realloc(c->integer,sizeof(uint32_t) * (i+1));
+	c->size = i + 1;
+}
+
+int big_int_div(BigInt *q, BigInt *r,BigInt *u, BigInt *v){
+	//Knuth-D implementation based on https://github.com/hcs0/Hackers-Delight/
+	
+	/*
+      	1. Space q for the quotient, m - n + 1 words (at least one).
+   	2. Space r for the remainder (optional), n words.
+   	3. The dividend u, m words, m >= 1.
+   	4. The divisor v, n words, n >= 2.
+   	*/
+   
+   
+	uint64_t BASE = 0x100000000;		// number base (2^32)
+	uint32_t *un,*vn;			//normalised u,v
+	
+	uint64_t q_hat;
+	uint64_t r_hat;
+	uint64_t p;				//product of 2 digits(chunks) 
+	
+	size_t m = u->size;
+	size_t n = v->size;
+	
+	size_t sizeQ = m - n + 1;
+	size_t sizeR = n;
+	
+	long long t, k;
+   	int i, j;
+   	
+   	
+	q->integer = malloc(sizeof(uint32_t) * sizeQ);
+	q->size = sizeQ;
+	
+	r->integer = malloc(sizeof(uint32_t) * sizeR);
+	r->size = sizeR;
+	
+	if(m < n || n <=0 || v->integer[n-1] == 0){
+		return 1;
+	}
+	
+	//easy casse hard coded
+	if(n == 1){
+		k = 0;
+		for(j = m - 1 ; j >= 0 ; --j){
+			q->integer[j] = (k * BASE + u->integer[j])/v->integer[0];
+			k = (k * BASE + u->integer[j]) - q->integer[j]*v->integer[0];
+		}
+		r->integer[0] = k;
+		return 0;
+	}
+	
+	
+	//normalising v
+	int s = big_int_count_leading_zeros(v);
+	
+	vn = (uint32_t*)malloc(sizeof(uint32_t) * n);
+	un = (uint32_t*)malloc(sizeof(uint32_t) * (m + 1));
+	
+	for(i = n - 1; i > 0 ; i --){
+		uint32_t shifted = v->integer[i] << s;
+		uint32_t carried = (uint64_t)v->integer[i-1] >> (32 - s);
+		
+		vn[i] = shifted | carried;
+	}
+	vn[0] = v->integer[0] << s;
+	
+	
+	
+	//normalising u
+	un[m] = (uint64_t)u->integer[m-1] >> (32 - s);
+	
+	for(i = m - 1 ; i > 0 ; --i){
+		uint32_t shifted = u->integer[i] << s;
+		uint32_t carried = (uint64_t)u->integer[i-1] >> (32 - s);
+		
+		un[i] = shifted | carried;
+	}
+	un[0] = u->integer[0] << s;
+	
+	//main loop
+	for(j = m-n; j >= 0; j--){ //for each quotient digit
+		//estimate qhat of q[j] using top 2 digits of dividend(u)
+		uint64_t numerator = ((uint64_t)un[j+n] << 32) | un[j+n-1]; //top 2 digits of u(chunks)
+		q_hat = numerator / vn[n-1];				//top 1 digit of v
+		r_hat = numerator % vn[n-1];
+		
+		
+		//refine qhat
+		while(q_hat >= BASE || (q_hat * vn[n-2]) > ((r_hat << 32) + un[j+n-2])){
+			q_hat = q_hat - 1;
+			r_hat = r_hat + vn[n-1];
+			if(r_hat >= BASE){
+				break;
+			}
+		}
+		
+		
+		//main procedure un[j..... j+n] - vn * qhat
+		k = 0;
+		for(i = 0 ; i < n  ; i++){
+		
+			p = q_hat * vn[i];
+			t = (uint64_t)un[j+i] - k - (p & MAXVAL);
+			un[j+i] = (uint32_t)(t & MAXVAL);
+			// Borrow = 1 if upper 32 bits are non-zero, else 0
+			k = (p >> 32) - (t >> 32);
+
+		}
+		t = (uint64_t)un[j+n] - k;
+		un[j+n] = (uint32_t)(t & MAXVAL);
+		
+		
+		//store q
+		q->integer[j] = (uint32_t)(q_hat & MAXVAL);
+		
+		//subtraction underflowed implied q_hat is large or overestimated
+		if ((int64_t)t < 0) {
+			q->integer[j] -= 1;
+			
+			//add back vn to current slice of un to restore remainder for next iter
+			uint64_t carry = 0;
+			for (i = 0; i < n; i++) {
+				uint64_t sum = (uint64_t)un[j+i] + vn[i] + carry;
+			 	un[j+i] = (uint32_t)sum;
+				carry = sum >> 32;
+			}
+			un[j+n] += carry;
+		}
+	}
+	//main loop done
+	
+	
+	//unnormalise(reverse what we did) to remainder
+	for(i = 0 ; i < n - 1 ; ++i){
+		uint32_t shifted = (un[i] >> s);
+		uint32_t carried = (uint64_t)un[i+1] << (32-s);
+		
+		r->integer[i] = shifted | carried;
+	}
+	r->integer[n-1] = un[n-1] >> s;
+	
+	
+	free(un);
+	free(vn);
+	return 0;
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

@@ -39,3 +39,10 @@ rsa_tool
 
 # Optional: ignore compiled binary in top-level
 rsa_tool.out
+
+
+#python scripts
+*.py
+*.txt
+
+knuth.c
