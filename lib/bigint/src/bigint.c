@@ -22,10 +22,33 @@ int count_leading_zeros(uint32_t x) {
     return count;
 }
 
+BigInt big_int_copy(BigInt a){
+	BigInt b;
+	b.sign = a.sign;
+	b.size = a.size;
+	
+	b.integer = malloc(sizeof(uint32_t) * a.size);
+	if (b.integer == NULL) {
+		fprintf(stderr, "Memory allocation failed in big_int_copy.\n");
+		exit(EXIT_FAILURE);
+	}
+	memcpy(b.integer, a.integer, sizeof(uint32_t) * a.size);
+	return b;
+}
+
 void big_int_swap(BigInt * a, BigInt * b){
 	BigInt t = *a;
 	*a = *b;
 	*b = t;
+}
+
+int big_int_is_zero(BigInt *a){
+	for(size_t i = 0 ; i < a->size ; i++){
+		if(a->integer[i] != 0x0){
+			return 0;
+		}
+	}
+	return 1;
 }
 
 void big_int_print(BigInt *a,int mode){
@@ -99,9 +122,41 @@ void big_int_inc(BigInt *a){
 	}
 }
 
+void big_int_bit_shift_r(BigInt *a,size_t s){
+	
+	if(a->size == 0 || s==0){
+		return;
+	}
+	
+	if(s >= 32){		//shift word
+		return;
+	}	
+	
+	size_t i = 0;
+	size_t sizeA = a->size; 
+	for(i = 0 ; i < sizeA - 1 ; ++i){
+		uint32_t shifted = ((a->integer[i]) >> s);
+		uint32_t carried = (a->integer[i+1]) << (32-s);
+		
+		a->integer[i] = shifted | carried;
+	}
+	a->integer[sizeA-1] = a->integer[sizeA-1] >> s;
+	
+	//shrinking
+	i = sizeA-1;
+	while( i > 0 && a->integer[i] == 0x0){
+		i--;
+	}
+	a->integer = realloc(a->integer,sizeof(uint32_t) * (i+1));
+	a->size = i + 1;
+}
+
+
+
 void big_int_add(BigInt *a, BigInt *b,BigInt *c){
 	if(b->size > a->size){
-		big_int_swap(a,b);
+		big_int_add(b,a,c);
+		return;
 	}
 	//a is always the larger number 
 	size_t sizeA = a->size;
@@ -175,7 +230,8 @@ void big_int_sub(BigInt *a, BigInt *b,BigInt *c){
 
 void big_int_mult(BigInt *a, BigInt *b,BigInt *c){
 	if(b->size > a->size){
-		big_int_swap(a,b);
+		big_int_mult(b, a,c);
+		return;
 	}
 	
 	//a is always the larger number 
@@ -215,7 +271,7 @@ void big_int_mult(BigInt *a, BigInt *b,BigInt *c){
 	c->size = i + 1;
 }
 
-int big_int_div(BigInt *q, BigInt *r,BigInt *u, BigInt *v){
+int big_int_div(BigInt *u, BigInt *v,BigInt *q, BigInt *r){
 	//Knuth-D implementation based on https://github.com/hcs0/Hackers-Delight/
 	
 	/*
@@ -246,8 +302,10 @@ int big_int_div(BigInt *q, BigInt *r,BigInt *u, BigInt *v){
 	q->integer = malloc(sizeof(uint32_t) * sizeQ);
 	q->size = sizeQ;
 	
-	r->integer = malloc(sizeof(uint32_t) * sizeR);
-	r->size = sizeR;
+	if(r){
+		r->integer = malloc(sizeof(uint32_t) * sizeR);
+		r->size = sizeR;
+	}
 	
 	if(m < n || n <=0 || v->integer[n-1] == 0){
 		return 1;
@@ -260,7 +318,9 @@ int big_int_div(BigInt *q, BigInt *r,BigInt *u, BigInt *v){
 			q->integer[j] = (k * BASE + u->integer[j])/v->integer[0];
 			k = (k * BASE + u->integer[j]) - q->integer[j]*v->integer[0];
 		}
-		r->integer[0] = k;
+		if(r){
+			r->integer[0] = k;
+		}
 		return 0;
 	}
 	
@@ -344,15 +404,30 @@ int big_int_div(BigInt *q, BigInt *r,BigInt *u, BigInt *v){
 	}
 	//main loop done
 	
-	
-	//unnormalise(reverse what we did) to remainder
-	for(i = 0 ; i < n - 1 ; ++i){
-		uint32_t shifted = (un[i] >> s);
-		uint32_t carried = (uint64_t)un[i+1] << (32-s);
-		
-		r->integer[i] = shifted | carried;
+	if(r){
+		//unnormalise(reverse what we did) to remainder
+		for(i = 0 ; i < n - 1 ; ++i){
+			uint32_t shifted = (un[i] >> s);
+			uint32_t carried = (uint64_t)un[i+1] << (32-s);
+			
+			r->integer[i] = shifted | carried;
+		}
+		r->integer[n-1] = un[n-1] >> s;
 	}
-	r->integer[n-1] = un[n-1] >> s;
+	
+	i = sizeR-1;
+	while( i > 0 && r->integer[i] == 0x0){
+		i--;
+	}
+	r->integer = realloc(r->integer,sizeof(uint32_t) * (i+1));
+	r->size = i + 1;
+	
+	i = sizeQ-1;
+	while( i > 0 && q->integer[i] == 0x0){
+		i--;
+	}
+	q->integer = realloc(q->integer,sizeof(uint32_t) * (i+1));
+	q->size = i + 1;
 	
 	
 	free(un);
@@ -361,8 +436,40 @@ int big_int_div(BigInt *q, BigInt *r,BigInt *u, BigInt *v){
 	
 }
 
+int big_int_mod(BigInt *a,BigInt *b, BigInt * c){
+	BigInt t;
+	return big_int_div(a,b,&t,c);
+}
 
+int big_int_modpow(BigInt * a,BigInt *b, BigInt * c, BigInt * d){
+	//d = a^b mod c
+	BigInt base = big_int_copy(*a);
+	BigInt exponent = big_int_copy(*b);
+	
+	*d = big_int_constructor(0,1,0x1);
+	
+	
+	while(!big_int_is_zero((&exponent))){
+		if(exponent.integer[0] % 2 == 1){
 
+			BigInt p;
+			big_int_mult(d,&base,&p);		//p  = res * exponent
+			big_int_mod(&p,c,d);				//res = p % c (res  = p % mod)	
+			big_int_destructor(&p);
+		}
+		big_int_bit_shift_r(&exponent,1);		//exponent = exponent/2;
+		
+		BigInt baseSquare;
+		big_int_mult(&base,&base,&baseSquare);		//baseSquare = base * base;
+		
+		big_int_mod(&baseSquare,c,&base);		//base = baseSquare % c .. base =\ base ** 2 % c;
+		big_int_destructor(&baseSquare);
+	}
+	
+	big_int_destructor(&base);
+    	big_int_destructor(&exponent);
+    	return 0;
+}
 
 
 
