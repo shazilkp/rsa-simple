@@ -349,7 +349,6 @@ void big_int_sub(BigInt *a, BigInt *b,BigInt *c){
 	size_t sizeA = a->size;
 	size_t sizeB = b->size;
 	size_t sizeC = (sizeA > sizeB ? sizeA : sizeB);
-	//printf("%zu %zu %zu\n",sizeA,sizeB,sizeC);
 	
 	c->integer = malloc(sizeof(uint32_t) * sizeC);
 	c->size = sizeC;
