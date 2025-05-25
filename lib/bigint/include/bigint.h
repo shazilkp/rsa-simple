@@ -21,11 +21,16 @@ int big_int_div(BigInt *u, BigInt *v,BigInt *q, BigInt *r);		//divmod
 int big_int_mod(BigInt *a,BigInt *b, BigInt * c);
 int big_int_modpow(BigInt * a,BigInt *b, BigInt * c, BigInt * d);
 
+void big_int_gcd(BigInt *a, BigInt *b, BigInt *c);
 
 void big_int_inc(BigInt *a);
 void big_int_bit_shift_r(BigInt *a,size_t s);
+void big_int_bit_shift_l(BigInt *a,size_t s);
+void big_int_word_shift_r(BigInt *a,size_t s);
+void big_int_word_shift_l(BigInt *a,size_t s);
 
 int big_int_is_zero(BigInt *a);
+int big_int_compare(BigInt *a,BigInt *b);
 
 void big_int_print(BigInt * a,int mode);
 void big_int_swap(BigInt * a, BigInt * b);

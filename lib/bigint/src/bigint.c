@@ -51,7 +51,65 @@ int big_int_is_zero(BigInt *a){
 	return 1;
 }
 
+int big_int_compare(BigInt *a,BigInt *b){
+	//a == b   ->   0
+	//a > b    ->   +ve
+	//a < b	   ->   -ve
+	
+	if(a->sign == 1 && b->sign == 0){
+		return -1;
+	}
+	if(a->sign == 0 && b->sign == 1){
+		return 1;
+	}
+	//same sign
+	int sign = a->sign;
+	size_t sizeA = a->size;
+	size_t sizeB = b->size;	
+	if(sizeA > sizeB){
+		if(sign){
+			return -1;
+		}
+		else{
+			return 1;
+		}
+	}
+	
+	if(sizeA < sizeB){
+		if(sign){
+			return 1;
+		}
+		else{
+			return -1;
+		}
+	}
+	
+	//sizeA = sizeB here
+	for(int i = sizeA - 1 ; i >= 0 ; --i){
+		if(a->integer[i] > b->integer[i]){
+			if(sign){
+				return -1;
+			}
+			else{
+				return 1;
+			}
+		}
+		if(a->integer[i] < b->integer[i]){
+			if(sign){
+				return 1;
+			}
+			else{
+				return -1;
+			}
+		}
+	} 
+	return 0;
+}
+
 void big_int_print(BigInt *a,int mode){
+	if(!a){
+		return;
+	}
 	if(a->sign == 1){
 		printf("-");
 	}
@@ -122,6 +180,62 @@ void big_int_inc(BigInt *a){
 	}
 }
 
+
+
+
+void big_int_word_shift_r(BigInt *a,size_t s){
+	
+	if(a->size == 0 || s==0){
+		return;
+	}
+	
+	if(s >= a->size){
+		a->integer[0] = 0x0;
+		uint32_t *new_mem = realloc(a->integer,sizeof(uint32_t) * (1));
+		if(!new_mem){
+			return;
+		}
+		a->integer = new_mem;
+		a->size = 1;
+		return;
+	}
+	
+	//s < a->size
+	size_t sizeA = a->size; 
+	
+	memmove(a->integer,a->integer + s, (sizeA - s)*sizeof(uint32_t));
+	
+	uint32_t *new_mem = realloc(a->integer,sizeof(uint32_t) * (sizeA - s));
+	if(!new_mem){
+		return;
+	}
+	
+	a->integer = new_mem;
+	a->size = sizeA - s;
+}
+
+void big_int_word_shift_l(BigInt *a,size_t s){
+	
+	if(a->size == 0 || s==0){
+		return;
+	}
+	size_t oldSize = a->size;
+	
+	uint32_t *new_mem = realloc(a->integer,sizeof(uint32_t) * (a->size + s));
+	if(!new_mem){
+		return;
+	}
+	a->integer = new_mem;
+	a->size = a->size + s;
+	
+	
+	memmove(a->integer+s,a->integer, oldSize*sizeof(uint32_t));
+	memset(a->integer,0,s * sizeof(uint32_t));
+}
+
+
+
+
 void big_int_bit_shift_r(BigInt *a,size_t s){
 	
 	if(a->size == 0 || s==0){
@@ -130,7 +244,11 @@ void big_int_bit_shift_r(BigInt *a,size_t s){
 	
 	if(s >= 32){		//shift word
 		return;
-	}	
+		size_t s_word = s / 32;
+		big_int_word_shift_r(a,s_word);
+		s = s % 31;
+		
+	}
 	
 	size_t i = 0;
 	size_t sizeA = a->size; 
@@ -150,6 +268,44 @@ void big_int_bit_shift_r(BigInt *a,size_t s){
 	a->integer = realloc(a->integer,sizeof(uint32_t) * (i+1));
 	a->size = i + 1;
 }
+
+void big_int_bit_shift_l(BigInt *a,size_t s){
+	if(a->size == 0 || s==0){
+		return;
+	}
+	
+	if(s >= 32){		//shift word
+		return;
+		size_t s_word = s / 32;
+		big_int_word_shift_l(a,s_word);
+		s = s % 31;
+	}	
+	
+	a->integer = realloc(a->integer,sizeof(uint32_t) * (a->size + 1));
+	a->size = a->size + 1;
+	
+	size_t i = 0;
+	size_t sizeA = a->size; 
+	
+	a->integer[sizeA - 1] = a->integer[sizeA-2] >> (32-s);
+	for(i = sizeA - 2 ; i > 0 ; --i){
+		uint32_t shifted = ((a->integer[i]) << s);
+		uint32_t carried = (a->integer[i-1]) >> (32-s);
+		
+		a->integer[i] = shifted | carried;
+	}
+	a->integer[0] = a->integer[0] << s;
+	
+	
+	//shrinking
+	i = sizeA-1;
+	while( i > 0 && a->integer[i] == 0x0){
+		i--;
+	}
+	a->integer = realloc(a->integer,sizeof(uint32_t) * (i+1));
+	a->size = i + 1;
+}
+
 
 
 
@@ -193,7 +349,7 @@ void big_int_sub(BigInt *a, BigInt *b,BigInt *c){
 	size_t sizeA = a->size;
 	size_t sizeB = b->size;
 	size_t sizeC = (sizeA > sizeB ? sizeA : sizeB);
-	printf("%zu %zu %zu\n",sizeA,sizeB,sizeC);
+	//printf("%zu %zu %zu\n",sizeA,sizeB,sizeC);
 	
 	c->integer = malloc(sizeof(uint32_t) * sizeC);
 	c->size = sizeC;
@@ -215,6 +371,9 @@ void big_int_sub(BigInt *a, BigInt *b,BigInt *c){
 			c->integer[i] = ~c->integer[i];
 		}
 		big_int_inc(c);
+	}
+	else{
+		c->sign = 0;
 	}
 	
 	i = sizeC-1;
@@ -442,6 +601,7 @@ int big_int_mod(BigInt *a,BigInt *b, BigInt * c){
 }
 
 int big_int_modpow(BigInt * a,BigInt *b, BigInt * c, BigInt * d){
+	//mod pow by sauring,binary exponentiation
 	//d = a^b mod c
 	BigInt base = big_int_copy(*a);
 	BigInt exponent = big_int_copy(*b);
@@ -472,41 +632,59 @@ int big_int_modpow(BigInt * a,BigInt *b, BigInt * c, BigInt * d){
 }
 
 
+void big_int_gcd(BigInt *a, BigInt *b, BigInt *c){
+	//binary gcd algo(Stein's algorithm)
+	if(big_int_is_zero(a)){
+		*c = big_int_copy(*b);
+		return;
+	}
+	if(big_int_is_zero(b)){
+		*c = big_int_copy(*a);
+		return;
+	}
+	
+	BigInt x = big_int_copy(*a);
+    	BigInt y = big_int_copy(*b);
+	
+	int count = 0;
+	while(!(x.integer[0] & 1) && !(y.integer[0] & 1)){
+		big_int_bit_shift_r(&x,1);
+		big_int_bit_shift_r(&y,1);
+		count++;
+	}
+	BigInt ZERO = big_int_constructor(0,1, 0x0);
+	while((big_int_compare(&y,&ZERO) > 0)){
+		while(!(x.integer[0] & 1)){
+			big_int_bit_shift_r(&x,1);
+		}
+		while(!(y.integer[0] & 1)){
+			big_int_bit_shift_r(&y,1);
+		}
+		
+		if((big_int_compare(&x, &y)) > 0){
+			//a = a-b
+			BigInt t;
+			big_int_sub(&x,&y,&t);
+			big_int_destructor(&x);
+			x = t;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+			//a = a/2
+			big_int_bit_shift_r(&x,1);
+		}
+		else{
+			//b = b-a			
+			BigInt t;
+			big_int_sub(&y,&x,&t);
+			big_int_destructor(&y);
+			y = t;
+			
+			//b = b/2
+			big_int_bit_shift_r(&y,1);
+		}
+	}
+	big_int_bit_shift_l(&x,count); //gcd = a << count;
+	*c = big_int_copy(x);
+}
 
 
 
