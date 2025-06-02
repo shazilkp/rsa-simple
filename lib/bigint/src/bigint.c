@@ -152,7 +152,7 @@ void big_int_print(BigInt *a,int mode){
 		return;
 	}
 	else{
-		//printf("print size = %zu\n",a->size);
+		printf("print size = %zu\n",a->size);
 	}
 	//printf("Sign = %d\n",a->sign);
 	if(a->sign == 1){
@@ -606,16 +606,17 @@ void big_int_mult(BigInt *a, BigInt *b,BigInt *c){
 }
 
 int big_int_div(BigInt *u, BigInt *v,BigInt *q, BigInt *r){
+	
 	//Knuth-D implementation based on https://github.com/hcs0/Hackers-Delight/
 	
 	/*
-      	1. Space q for the quotient, m - n + 1 words (at least one).
+    1. Space q for the quotient, m - n + 1 words (at least one).
    	2. Space r for the remainder (optional), n words.
    	3. The dividend u, m words, m >= 1.
    	4. The divisor v, n words, n >= 2.
    	*/
-   
-   
+	
+	
 	uint64_t BASE = 0x100000000;		// number base (2^32)
 	uint32_t *un,*vn;			//normalised u,v
 	
@@ -754,7 +755,7 @@ int big_int_div(BigInt *u, BigInt *v,BigInt *q, BigInt *r){
 		i--;
 	}
 	if (!big_int_safe_realloc(r, i+1)) {
-		fprintf(stderr, "Error: Failed to reallocate BigInt to size %zu words\n", 1+1);
+		fprintf(stderr, "Error: Failed to reallocate BigInt to size %zu words\n", i+1);
 		exit(EXIT_FAILURE);
 	}
 	
@@ -763,10 +764,9 @@ int big_int_div(BigInt *u, BigInt *v,BigInt *q, BigInt *r){
 		i--;
 	}
 	if (!big_int_safe_realloc(q, i+1)) {
-		fprintf(stderr, "Error: Failed to reallocate BigInt to size %zu words\n", 1+1);
+		fprintf(stderr, "Error: Failed to reallocate BigInt to size %zu words\n", i+1);
 		exit(EXIT_FAILURE);
 	}
-	
 	
 	free(un);
 	free(vn);
@@ -780,7 +780,7 @@ int big_int_mod(BigInt *a,BigInt *b, BigInt * c){
 }
 
 int big_int_modpow(BigInt * a,BigInt *b, BigInt * c, BigInt * d){
-	//mod pow by sauring,binary exponentiation
+	//mod pow by squaring,binary exponentiation
 	//d = a^b mod c
 	BigInt base = big_int_copy(*a);
 	BigInt exponent = big_int_copy(*b);
@@ -1050,4 +1050,43 @@ void big_int_xgcd(BigInt *a, BigInt *b, BigInt *gcd, BigInt *x_out,BigInt *y_out
 	big_int_destructor(&u_i);big_int_destructor(&v_i);
 	big_int_destructor(&x1);big_int_destructor(&y1);
 	big_int_destructor(&x2);big_int_destructor(&y2);
+}
+
+
+void big_int_modinv(BigInt *a, BigInt *b, BigInt *c){
+	BigInt x = {NULL, 0 , 0};
+	BigInt y = {NULL, 0 , 0};
+	BigInt gcd = {NULL, 0 , 0};
+
+	big_int_xgcd(a,b,&gcd,&x,&y);
+	BigInt one = big_int_from_uint32_t(0x1);
+
+	if(big_int_compare(&gcd,&one,0) != 0){
+		c = NULL;
+		sprintf(stderr,"Inverse doesnt exist\n");
+		return;
+	}
+
+	BigInt r = {NULL,0,0,};
+	BigInt temp = {NULL,0,0};
+
+	if(big_int_mod(&x,b,&r) == 1){		//temp = x mod b(unisgned)
+		sprintf(stderr,"Mod failed\n");
+		return;
+	}
+
+	if(x.sign == 1){		//if x negetive
+		big_int_usub(&b,&r,&temp);		//r = m - r
+		big_int_destructor(&r);
+		r.sign = temp.sign;
+		r.integer = temp.integer;
+		r.size = temp.size;
+	}
+
+	*c = big_int_copy(r);
+	big_int_destructor(&x);
+	big_int_destructor(&y);
+	big_int_destructor(&gcd);
+	big_int_destructor(&one);
+
 }

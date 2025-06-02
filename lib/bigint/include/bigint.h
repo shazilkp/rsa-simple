@@ -26,6 +26,7 @@ int big_int_modpow(BigInt * a,BigInt *b, BigInt * c, BigInt * d);
 
 void big_int_gcd(BigInt *a, BigInt *b, BigInt *c);
 void big_int_xgcd(BigInt *a, BigInt *b, BigInt *gcd, BigInt *x_out, BigInt *y_out);
+void big_int_modinv(BigInt *a, BigInt *b, BigInt *c);
 
 void big_int_inc(BigInt *a);
 void big_int_bit_shift_r(BigInt *a,size_t s);

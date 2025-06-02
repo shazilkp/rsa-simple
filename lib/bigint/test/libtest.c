@@ -3,7 +3,7 @@
 
 
 int main(){
-	BigInt a = big_int_constructor(0, 16,
+	BigInt a1 = big_int_constructor(0, 16,
 	    0x97555800 , 0x6A321112 , 0xB9DB9D03 , 0x36A0D281 ,
 	    0x1668B5B3 , 0x09E3345E , 0x5C4F2B9D , 0x5DD10C1A ,
 	    0xB9B77BFC , 0xBEDA9538 , 0x3668A252 , 0x2A71BE5A ,
@@ -12,17 +12,25 @@ int main(){
 	
 	BigInt zero = big_int_constructor(0,1,0x00000000);
 
-	BigInt b = big_int_constructor(0, 16,
+	BigInt b1 = big_int_constructor(0, 16,
 	    0x5C189D00 , 0xA3B2E4FB , 0xFCB93DA0 , 0x4453859B ,
 	    0xA9222471 , 0x15E747A2 , 0x5D0B2B12 , 0x39DC45CB ,
 	    0x669F8809 , 0xC1859E49 , 0xC5FEE768 , 0x20E4FDA8 ,
 	    0x19960098 , 0x4F513BA2 , 0x65ACF9F7 , 0x2B5C3D79);
 	    
-	BigInt b1 = big_int_constructor(0, 1,
-	    18);
+	BigInt a = big_int_constructor(0, 1,
+	    65537);
 	    
-	BigInt a1 = big_int_constructor(0, 1,
-	    48);
+	BigInt b = big_int_constructor(0, 32,
+		0xC1A3B2D4, 0xC1A3B2D5, 0x12345678, 0x9ABCDEF0,
+		0x0FEDCBA9, 0x98765432, 0xCAFEBABE, 0xDEADBEEF,
+		0xFACEB00C, 0x8BADF00D, 0xB16B00B5, 0x0D15EA5E,
+		0xBADC0FFEE, 0xFEEDFACE, 0xBAADF00D, 0xDEADC0DE,
+		0xC0DEC0DE, 0x0F00D00D, 0xCAFED00D, 0xBAADF00D,
+		0xFEEDFACE, 0xBAADF00D, 0xABAD1DEA, 0xDEADBEEF,
+		0xCAFEBABE, 0x0BADF00D, 0x1BADB002, 0x8BADF00D,
+		0xCAFEBABE, 0x8BADF00D, 0xCAFED00D, 0xFFFFFFFF);
+	    
 	    
 	BigInt x_pred = big_int_constructor(0,16,
 					0x028B5309, 0x34714DC6, 0xE7E1BCFE, 0xD78DC380,
@@ -36,7 +44,7 @@ int main(){
 					0x5F17EA98, 0xD14CEEAC, 0x66835186, 0x798081C9,
 					0x462C828B, 0x2DF1D580, 0x0BD53976, 0xB65A72A6);
 	BigInt x,y;
-	BigInt gcd = {NULL, 0 , 0};
+	BigInt modinv = {NULL, 0 , 0};
 	
 	
 	//0xE34A15CD 0xBB237AAD 0x99213458 0xAABBCCDD 0xEEFF0011 0x22334455 0x66778899 
@@ -95,9 +103,9 @@ int main(){
 	printf("\n");
 	
 	
-	big_int_gcd(&a,&b,&gcd);
-	printf("GCD = ");
-	big_int_print(&gcd,0);
+	big_int_modinv(&a,&b,&modinv);
+	printf("mod inv = ");
+	big_int_print(&modinv,0);
 	printf("\n");
 	
 	
@@ -109,7 +117,16 @@ int main(){
 	big_int_print(&b,0);
 	printf("\n");
 	
+	big_int_mult(&a,&modinv,&t1);
+	big_int_mod(&t1,&b,&t2);
 	
+	printf("t1 = ");
+	big_int_print(&t1,0);
+	printf("\n");
+	
+	printf("t2 = ");
+	big_int_print(&t2,0);
+	printf("\n");
 	
 	/*
 	printf("X = ");
