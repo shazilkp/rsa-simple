@@ -1,5 +1,5 @@
 #include "bigint.h"
-
+#include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
@@ -7,7 +7,6 @@
 #define MAXVAL 0xFFFFFFFFULL 
 
 //stored as little endian
-#include <stdint.h>
 
 int count_leading_zeros(uint32_t x) {
     if (x == 0) return 32;
@@ -412,7 +411,7 @@ void big_int_uadd(BigInt *a, BigInt *b,BigInt *c){
 			fprintf(stderr, "Error: Failed to reallocate BigInt to size %zu words\n", sizeA + 1);
 			exit(EXIT_FAILURE);
 		}
-		c->integer[sizeA] = carry; // <- YOU NEED THIS
+		c->integer[sizeA] = carry; 
 		c->size = sizeA + 1;
 	}
 	c->sign = 0;
@@ -569,7 +568,7 @@ void big_int_mult(BigInt *a, BigInt *b,BigInt *c){
 	size_t sizeA = a->size;
 	size_t sizeB = b->size;
 	size_t sizeC = sizeA + sizeB;
-	printf("A sign = %d B sign =%d\n", a->sign,b->sign);
+	//printf("A sign = %d B sign =%d\n", a->sign,b->sign);
 	
 	c->sign = a->sign ^ b->sign;
 	
@@ -616,7 +615,7 @@ int big_int_div(BigInt *u, BigInt *v,BigInt *q, BigInt *r){
    	4. The divisor v, n words, n >= 2.
    	*/
 	
-	
+
 	uint64_t BASE = 0x100000000;		// number base (2^32)
 	uint32_t *un,*vn;			//normalised u,v
 	
@@ -806,8 +805,8 @@ int big_int_modpow(BigInt * a,BigInt *b, BigInt * c, BigInt * d){
 	}
 	
 	big_int_destructor(&base);
-    	big_int_destructor(&exponent);
-    	return 0;
+    big_int_destructor(&exponent);
+    return 0;
 }
 
 
@@ -877,6 +876,7 @@ void big_int_gcd(BigInt *a, BigInt *b, BigInt *c){
 	
 	big_int_destructor(&x);
     big_int_destructor(&y);
+	big_int_destructor(&ZERO);
 }
 
 void big_int_xgcd(BigInt *a, BigInt *b, BigInt *gcd, BigInt *x_out,BigInt *y_out){
