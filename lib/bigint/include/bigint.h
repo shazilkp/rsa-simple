@@ -1,3 +1,7 @@
+#ifndef BIGINT_H
+#define BIGINT_H
+
+
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -40,3 +44,5 @@ int big_int_compare(BigInt *a,BigInt *b, int modulus);
 void big_int_print(BigInt * a,int mode);
 void big_int_swap(BigInt * a, BigInt * b);
 int big_int_count_leading_zeros(BigInt *a);
+
+#endif
