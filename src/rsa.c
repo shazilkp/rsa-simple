@@ -236,3 +236,9 @@ int encrypt(BigInt * m,BigInt * key, BigInt * n,BigInt * c){
     big_int_modpow(m,key,n,c);
     return 1;
 }
+
+//m is plain text of cipher  c
+int decrypt(BigInt * c,BigInt * key, BigInt * n,BigInt * m){
+    big_int_modpow(c,key,n,m);
+    return 1;
+}

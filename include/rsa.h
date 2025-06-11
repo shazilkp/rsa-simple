@@ -16,4 +16,5 @@ int big_int_generate_prime(size_t bits, BigInt * a);
 //rsa
 int generate(BigInt *n, BigInt *e, BigInt *d, size_t bits);
 int encrypt(BigInt * m,BigInt * key, BigInt * n,BigInt * c);
+int decrypt(BigInt * c,BigInt * key, BigInt * n,BigInt * m);
 #endif
