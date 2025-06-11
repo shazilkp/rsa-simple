@@ -1,39 +1,46 @@
-# === Compiler & Flags ===
 CC = gcc
-CFLAGS = -Iinclude -Ilib/bigint/include -Wall -Wextra -g
+CFLAGS = -Wall -Wextra -Iinclude -Ilib/bigint/include -g
 
-# === Paths ===
-SRC_DIR = src
-BIGINT_SRC_DIR = lib/bigint/src
-OBJ_DIR = build
-BIN_DIR = bin
+# Source files
+RSA_SRC = src/rsa.c
+BIGINT_SRC = lib/bigint/src/bigint.c
+TEST_SRC = src/test_rsa.c
 
-# === Sources ===
-SRC_FILES = $(SRC_DIR)/main.c $(SRC_DIR)/rsa.c $(SRC_DIR)/cli.c $(BIGINT_SRC_DIR)/bigint.c
-OBJ_FILES = $(patsubst %.c, $(OBJ_DIR)/%.o, $(SRC_FILES))
+# Object files
+RSA_OBJ = build/rsa.o
+BIGINT_OBJ = build/bigint.o
+TEST_OBJ = build/test_rsa.o
 
-# === Target Binary ===
-TARGET = $(BIN_DIR)/rsa-simple.out
+# Output binary
+TEST_BIN = test_rsa
 
-# === Build Rules ===
-all: $(TARGET)
+# Default target
+all: $(TEST_BIN)
 
-# Create binary directory
-$(BIN_DIR):
-	mkdir -p $(BIN_DIR)
-
-# Create object directory
-$(OBJ_DIR)/%.o: %.c
-	@mkdir -p $(dir $@)
+# Compile each file explicitly
+$(RSA_OBJ): $(RSA_SRC)
+	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Link all objects
-$(TARGET): $(BIN_DIR) $(OBJ_FILES)
-	$(CC) $(CFLAGS) -o $@ $(OBJ_FILES)
+$(BIGINT_OBJ): $(BIGINT_SRC)
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# Clean build files
+$(TEST_OBJ): $(TEST_SRC)
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Link everything
+$(TEST_BIN): $(TEST_OBJ) $(RSA_OBJ) $(BIGINT_OBJ)
+	$(CC) $(CFLAGS) $^ -o $@
+
+# Run tests
+test: $(TEST_BIN)
+	./$(TEST_BIN)
+
+# Clean build artifacts
 clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR)
+	rm -rf build $(TEST_BIN)
 
-.PHONY: all clean
+.PHONY: all test clean
 

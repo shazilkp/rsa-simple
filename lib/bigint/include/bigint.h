@@ -18,6 +18,7 @@ void big_int_destructor(BigInt * bignum);
 
 BigInt big_int_from_uint64_t(uint64_t num);
 BigInt big_int_from_uint32_t(uint32_t num);
+BigInt big_int_from_byte_array_le(unsigned char * buff,size_t buff_len);
 
 void big_int_uadd(BigInt *a, BigInt *b,BigInt *c);
 void big_int_add(BigInt *a, BigInt *b,BigInt *c);
@@ -44,5 +45,7 @@ int big_int_compare(BigInt *a,BigInt *b, int modulus);
 void big_int_print(BigInt * a,int mode);
 void big_int_swap(BigInt * a, BigInt * b);
 int big_int_count_leading_zeros(BigInt *a);
+BigInt big_int_copy(BigInt a);
+size_t big_int_bit_length(BigInt *a);
 
 #endif

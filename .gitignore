@@ -36,7 +36,7 @@ Makefile~
 
 # Specific to your project structure
 rsa_tool
-
+test_rsa
 # Optional: ignore compiled binary in top-level
 rsa_tool.out
 

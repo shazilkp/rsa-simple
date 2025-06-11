@@ -157,14 +157,25 @@ void big_int_print(BigInt *a,int mode){
 	if(a->sign == 1){
 		printf("-");
 	}
-	if(!mode){
-		for(size_t i = 0; i < a->size ; i++){
-			printf("0x%08X ",a->integer[i]);
+
+	switch(mode){
+		case 0:{
+			for(size_t i = 0; i < a->size ; i++){
+				printf("0x%08X ",a->integer[i]);
+			}
+			break;
 		}
-	}
-	else{
-		for(int i = (a->size)-1; i >=0 ; --i){
-			printf("0x%08X ",a->integer[i]);
+		case 1:{
+			for(int i = (a->size)-1; i >=0 ; --i){
+				printf("0x%08X ",a->integer[i]);
+			}
+			break;
+		}
+		case 2:{
+			printf("0x");
+			for(int i = (a->size)-1; i >=0 ; --i){
+				printf("%08X",a->integer[i]);
+			}
 		}
 	}
 	printf("\n");
@@ -194,6 +205,39 @@ BigInt big_int_from_uint64_t(uint64_t num){
 
 BigInt big_int_from_uint32_t(uint32_t num){
 	return big_int_constructor(0,1,(uint32_t)(num & MAXVAL));
+}
+
+
+BigInt big_int_from_byte_array_le(unsigned char * buff,size_t buff_len){
+	size_t sizeA = (buff_len + 3)/4;		//32 bit word size from 8 bit array
+	BigInt a;
+	a.sign = 0;
+	a.size = sizeA;
+	
+	a.integer = malloc(sizeof(uint32_t) *sizeA);
+	if (a.integer == NULL) {
+		fprintf(stderr, "Memory allocation failed in byte array concversion.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	for (size_t i = 0; i < sizeA; i++) {
+        a.integer[i] = 0;
+    }
+
+	for(size_t i = 0 ; i < sizeA ; i++){
+		size_t buff_index = i * 4;
+		size_t bytes_to_copy = 4;
+		uint32_t word = 0;
+
+        if (buff_index + 4 > buff_len) {
+            bytes_to_copy = buff_len - buff_index;
+        }
+		memcpy(&word,buff + buff_index,bytes_to_copy);
+		a.integer[i] = word;
+	}
+
+
+	return a;
 }
 
 int big_int_count_leading_zeros(BigInt *a){
@@ -246,7 +290,7 @@ void big_int_word_shift_r(BigInt *a,size_t s){
 	
 	if(s >= a->size){
 		if (!big_int_safe_realloc(a, 1)) {
-			fprintf(stderr, "Error: Failed to reallocate BigInt to size %zu words\n", 1);
+			fprintf(stderr, "Error: Failed to reallocate BigInt to size %zu words\n", (long unsigned int)1);
 			exit(EXIT_FAILURE);
 		}
 		a->integer[0] = 0x0;
@@ -318,7 +362,7 @@ void big_int_bit_shift_r(BigInt *a,size_t s){
 	//printf("Final size after right shifting %zu \n",i+1);
 
 	if (!big_int_safe_realloc(a, i+1)) {
-		fprintf(stderr, "Error: Failed to reallocate BigInt to size %zu words\n", 1+1);
+		fprintf(stderr, "Error: Failed to reallocate BigInt to size %zu words\n", (long unsigned int)i+1);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -527,7 +571,7 @@ void big_int_usub(BigInt *a, BigInt *b,BigInt *c){
 		i--;
 	}
 	if (!big_int_safe_realloc(c, i+1)) {
-		fprintf(stderr, "Error: Failed to reallocate BigInt to size %zu words\n", i+1);
+		fprintf(stderr, "Error: Failed to reallocate BigInt to size %zu words\n", (long unsigned int)i+1);
 		exit(EXIT_FAILURE);
 	}
 	c->sign = 0;
@@ -545,7 +589,7 @@ void big_int_sub(BigInt * a,BigInt *b,BigInt * c){
 		return;
 	}
 	else if(a->sign  == 0 && b->sign == 1){
-		printf("case 3\n");
+		//printf("case 3\n");
 		big_int_uadd(a,b,c);
 		return; 
 	}
@@ -599,7 +643,7 @@ void big_int_mult(BigInt *a, BigInt *b,BigInt *c){
 		i--;
 	}
 	if (!big_int_safe_realloc(c, i+1)) {
-		fprintf(stderr, "Error: Failed to reallocate BigInt to size %zu words\n", 1+1);
+		fprintf(stderr, "Error: Failed to reallocate BigInt to size %zu words\n", (long unsigned int)i+1);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -625,6 +669,13 @@ int big_int_div(BigInt *u, BigInt *v,BigInt *q, BigInt *r){
 	
 	size_t m = u->size;
 	size_t n = v->size;
+
+
+	if(n > m){
+		*q = big_int_from_uint32_t(0);
+		*r = big_int_copy(*u);
+		return 0;
+	}
 	
 	size_t sizeQ = m - n + 1;
 	size_t sizeR = n;
@@ -754,7 +805,7 @@ int big_int_div(BigInt *u, BigInt *v,BigInt *q, BigInt *r){
 		i--;
 	}
 	if (!big_int_safe_realloc(r, i+1)) {
-		fprintf(stderr, "Error: Failed to reallocate BigInt to size %zu words\n", i+1);
+		fprintf(stderr, "Error: Failed to reallocate BigInt to size %zu words\n", (long unsigned int)i+1);
 		exit(EXIT_FAILURE);
 	}
 	
@@ -763,7 +814,7 @@ int big_int_div(BigInt *u, BigInt *v,BigInt *q, BigInt *r){
 		i--;
 	}
 	if (!big_int_safe_realloc(q, i+1)) {
-		fprintf(stderr, "Error: Failed to reallocate BigInt to size %zu words\n", i+1);
+		fprintf(stderr, "Error: Failed to reallocate BigInt to size %zu words\n", (long unsigned int)i+1);
 		exit(EXIT_FAILURE);
 	}
 	
@@ -778,14 +829,13 @@ int big_int_mod(BigInt *a,BigInt *b, BigInt * c){
 	return big_int_div(a,b,&t,c);
 }
 
+//mod pow by squaring,binary exponentiation
+//d = a^b mod c
 int big_int_modpow(BigInt * a,BigInt *b, BigInt * c, BigInt * d){
-	//mod pow by squaring,binary exponentiation
-	//d = a^b mod c
 	BigInt base = big_int_copy(*a);
 	BigInt exponent = big_int_copy(*b);
 	
 	*d = big_int_constructor(0,1,0x1);
-	
 	
 	while(!big_int_is_zero((&exponent))){
 		if(exponent.integer[0] % 2 == 1){
@@ -1052,7 +1102,7 @@ void big_int_xgcd(BigInt *a, BigInt *b, BigInt *gcd, BigInt *x_out,BigInt *y_out
 	big_int_destructor(&x2);big_int_destructor(&y2);
 }
 
-
+//c = a^-1 mod b
 void big_int_modinv(BigInt *a, BigInt *b, BigInt *c){
 	BigInt x = {NULL, 0 , 0};
 	BigInt y = {NULL, 0 , 0};
@@ -1063,7 +1113,7 @@ void big_int_modinv(BigInt *a, BigInt *b, BigInt *c){
 
 	if(big_int_compare(&gcd,&one,0) != 0){
 		c = NULL;
-		sprintf(stderr,"Inverse doesnt exist\n");
+		fprintf(stderr,"Inverse doesnt exist\n");
 		return;
 	}
 
@@ -1071,12 +1121,12 @@ void big_int_modinv(BigInt *a, BigInt *b, BigInt *c){
 	BigInt temp = {NULL,0,0};
 
 	if(big_int_mod(&x,b,&r) == 1){		//temp = x mod b(unisgned)
-		sprintf(stderr,"Mod failed\n");
+		fprintf(stderr,"Mod failed\n");
 		return;
 	}
 
 	if(x.sign == 1){		//if x negetive
-		big_int_usub(&b,&r,&temp);		//r = m - r
+		big_int_usub(b,&r,&temp);		//r = m - r
 		big_int_destructor(&r);
 		r.sign = temp.sign;
 		r.integer = temp.integer;
@@ -1089,4 +1139,11 @@ void big_int_modinv(BigInt *a, BigInt *b, BigInt *c){
 	big_int_destructor(&gcd);
 	big_int_destructor(&one);
 
+}
+
+size_t big_int_bit_length(BigInt *a){
+	int leadingZero = big_int_count_leading_zeros(a);
+	size_t sizeA = a->size;
+	size_t bit_len = (sizeA * 32) - leadingZero;
+	return bit_len;
 }
