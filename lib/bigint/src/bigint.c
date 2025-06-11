@@ -826,7 +826,9 @@ int big_int_div(BigInt *u, BigInt *v,BigInt *q, BigInt *r){
 
 int big_int_mod(BigInt *a,BigInt *b, BigInt * c){
 	BigInt t;
-	return big_int_div(a,b,&t,c);
+	int res =  big_int_div(a,b,&t,c);
+	big_int_destructor(&t);
+	return res;
 }
 
 //mod pow by squaring,binary exponentiation
@@ -883,7 +885,7 @@ void big_int_gcd(BigInt *a, BigInt *b, BigInt *c){
 	
 	
 	
-	BigInt ZERO = big_int_constructor(0,1, 0x0);
+	BigInt ZERO = big_int_from_uint32_t(0);
 	
 	
 	while((big_int_compare(&y,&ZERO,0) > 0)){

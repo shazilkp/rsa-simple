@@ -58,6 +58,7 @@ int main(){
 	BigInt cipher = {NULL, 0, 0};
 	BigInt plain = {NULL, 0, 0};
 
+	char * tmpmsg = "string";
 	
 	generate(&n,&e,&d,512);
 
