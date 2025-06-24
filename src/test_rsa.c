@@ -1,5 +1,6 @@
 #include "rsa.h"
 #include <stdio.h>
+#include "cli.h"
 
 
 int main(){
@@ -7,9 +8,9 @@ int main(){
 	// 	0x3322116D , 0x77665544 , 0xBBAA9988 , 0xFFEEDDCC ,
 	// 	0x33221100 , 0x77665544 , 0xB5A69788 , 0xF1E2D3C4);
 
-    BigInt message = big_int_constructor(0, 4,
-		0x89ABCDF9 , 0x12345678 , 0xCAFEBABE , 0x0BADF00D 
-	 );
+    // BigInt message = big_int_constructor(0, 4,
+	// 	0x89ABCDF9 , 0x12345678 , 0xCAFEBABE , 0x0BADF00D 
+	//  );
 
 
 	 
@@ -51,46 +52,69 @@ int main(){
 
 
 	 
-	BigInt n = {NULL, 0, 0};
-	BigInt e = {NULL, 0, 0};
-	BigInt d = {NULL, 0, 0};
+	// BigInt n = {NULL, 0, 0};
+	// BigInt e = {NULL, 0, 0};
+	// BigInt d = {NULL, 0, 0};
 	
-	BigInt cipher = {NULL, 0, 0};
-	BigInt plain = {NULL, 0, 0};
+	// BigInt cipher = {NULL, 0, 0};
+	// BigInt plain = {NULL, 0, 0};
 
-	char * tmpmsg = "string";
+	// char * tmpmsg = "string";
 	
-	generate(&n,&e,&d,512);
+	// generate(&n,&e,&d,1024);
 
-	//big_int_print(&a,0);
-	big_int_print(&message,2);
-	big_int_print(&e,2);
-	big_int_print(&n,2);
-	big_int_print(&d,2);
+	// //big_int_print(&a,0);
+	// big_int_print(&message,2);
+	// big_int_print(&e,2);
+	// big_int_print(&n,2);
+	// big_int_print(&d,2);
 
 
 
-	encrypt(&message,&d,&n,&cipher);
-	//big_int_modpow(&message,&e,&n,&cipher);
+	// encrypt(&message,&d,&n,&cipher);
+	// //big_int_modpow(&message,&e,&n,&cipher);
 
-	printf("message = ");
-	big_int_print(&message,2);
+	// printf("message = ");
+	// big_int_print(&message,2);
 		
-	printf("cipher = ");
-	big_int_print(&cipher,2);
+	// printf("cipher = ");
+	// big_int_print(&cipher,2);
 
-	decrypt(&cipher,&e,&n,&plain);
+	// decrypt(&cipher,&e,&n,&plain);
 
-	printf("plain = ");
-	big_int_print(&plain,2);
+	// printf("plain = ");
+	// big_int_print(&plain,2);
 
-    
+    // char * pubfile = "pubkey_out.txt";
+	// char * privfile = "privkey_out.txt";
+	// cli_generate(2048,pubfile,privfile);
+	// size_t mod_len,exp_len;
+	// BigInt mod,exp,mod2,priv;
 	
- 
+	// read_rsa_key(pubfile,&mod_len,&exp_len,&mod,&exp);
+	// read_rsa_key(privfile,&mod_len,&exp_len,&mod2,&priv);
 
+	// printf("mod = ");
+	// big_int_print(&mod,2);
+
+	// printf("pubkey = ");
+	// big_int_print(&exp,2);
+
+	// printf("mod2 = ");
+	// big_int_print(&mod2,2);
+
+	// printf("pribkey = ");
+	// big_int_print(&priv,2);
+	
+	char * pubKey = "pubkey_out.txt";
+	char * privKey = "privkey_out.txt";
+	char * inFile = "ex.bmp";
+	char * outFile = "encrypted.txt";
+
+	cli_encrypt(pubKey,inFile,outFile);
+	 cli_decrypt(privKey,outFile,"decrypted.bmp");
 	
 	
-	
-	big_int_destructor(&n);
-	big_int_destructor(&message);
+	// big_int_destructor(&n);
+	// big_int_destructor(&message);
 }

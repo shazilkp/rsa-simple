@@ -235,9 +235,61 @@ BigInt big_int_from_byte_array_le(unsigned char * buff,size_t buff_len){
 		memcpy(&word,buff + buff_index,bytes_to_copy);
 		a.integer[i] = word;
 	}
-
-
 	return a;
+}
+
+
+BigInt big_int_from_byte_array_be(unsigned char  *bytes, size_t len) {
+	BigInt result = big_int_from_uint32_t(0); // or init with 0
+    
+	// printf("len = %zu\n",len);
+    for (size_t i = 0; i < len; ++i) {
+        big_int_bit_shift_l(&result, 8); // multiply result by 256
+
+        BigInt tmp = big_int_from_uint32_t(bytes[i]);
+
+		BigInt new_result = {NULL, 0, 0};
+		big_int_add(&result, &tmp, &new_result);  // new_result = result + tmp
+
+		big_int_destructor(&result);             // free old result
+		result.integer = new_result.integer;                     // assign the new result
+		result.sign = new_result.sign;    
+		result.size = new_result.size;    
+
+		big_int_destructor(&tmp); 
+    }
+	// big_int_print(&result,0);
+	// printf("\n");
+    return result;
+}
+
+
+unsigned char * big_int_to_byte_array_be(BigInt * a, size_t * len){
+	if(!a){
+		return NULL;
+	}
+
+	size_t sizeA = a->size;
+	unsigned char * temp = malloc(4 * sizeA); //malloc
+
+	size_t j = 0;
+	int leading = 1;
+	for(int i = sizeA-1; i >=0 ; --i){
+
+		uint32_t word = a->integer[i];
+		for (int byte = 3; byte >= 0; --byte) {
+            unsigned char b = (word >> (8 * byte)) & 0xFF;
+            if (leading && b == 0) continue;  // Skip leading zero bytes
+            leading = 0;
+            temp[j++] = b;
+        }
+	}
+
+	if(len) *len = j;
+	unsigned char * result = malloc(j);
+	memcpy(result,temp,j);
+	free(temp);
+	return result;
 }
 
 int big_int_count_leading_zeros(BigInt *a){

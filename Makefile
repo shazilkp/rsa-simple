@@ -3,6 +3,7 @@ CFLAGS = -Wall -Wextra -Iinclude -Ilib/bigint/include -g
 
 # Source files
 RSA_SRC = src/rsa.c
+CLI_SRC = src/cli.c
 BIGINT_SRC = lib/bigint/src/bigint.c
 TEST_SRC = src/test_rsa.c
 
@@ -10,6 +11,7 @@ TEST_SRC = src/test_rsa.c
 RSA_OBJ = build/rsa.o
 BIGINT_OBJ = build/bigint.o
 TEST_OBJ = build/test_rsa.o
+CLI_OBJ = build/cli.o
 
 # Output binary
 TEST_BIN = test_rsa
@@ -30,8 +32,12 @@ $(TEST_OBJ): $(TEST_SRC)
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(CLI_OBJ): $(CLI_SRC)
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) -c $< -o $@
+
 # Link everything
-$(TEST_BIN): $(TEST_OBJ) $(RSA_OBJ) $(BIGINT_OBJ)
+$(TEST_BIN): $(TEST_OBJ) $(RSA_OBJ) $(BIGINT_OBJ) $(CLI_OBJ)
 	$(CC) $(CFLAGS) $^ -o $@
 
 # Run tests
