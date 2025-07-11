@@ -13,7 +13,7 @@ SRC_FILES = $(SRC_DIR)/main.c $(SRC_DIR)/rsa.c $(SRC_DIR)/cli.c $(BIGINT_SRC_DIR
 OBJ_FILES = $(patsubst %.c, $(OBJ_DIR)/%.o, $(SRC_FILES))
 
 # === Target Binary ===
-TARGET = $(BIN_DIR)/rsa_simple
+TARGET = $(BIN_DIR)/rsa-simple
 
 # === Build Rules ===
 all: $(TARGET)
