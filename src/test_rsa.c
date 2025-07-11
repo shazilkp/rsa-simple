@@ -85,9 +85,9 @@ int main(){
 	// printf("plain = ");
 	// big_int_print(&plain,2);
 
-    // char * pubfile = "pubkey_out.txt";
-	// char * privfile = "privkey_out.txt";
-	// cli_generate(2048,pubfile,privfile);
+    char * pubfile = "pubkey_out.txt";
+	char * privfile = "privkey_out.txt";
+	cli_generate(2048,pubfile,privfile);
 	// size_t mod_len,exp_len;
 	// BigInt mod,exp,mod2,priv;
 	
@@ -106,13 +106,13 @@ int main(){
 	// printf("pribkey = ");
 	// big_int_print(&priv,2);
 	
-	char * pubKey = "pubkey_out.txt";
-	char * privKey = "privkey_out.txt";
-	char * inFile = "ex.bmp";
-	char * outFile = "encrypted.txt";
+	// char * pubKey = "pubkey_out.txt";
+	// char * privKey = "privkey_out.txt";
+	// char * inFile = "hello.txt";
+	// char * outFile = "encrypted.txt";
 
-	cli_encrypt(pubKey,inFile,outFile);
-	 cli_decrypt(privKey,outFile,"decrypted.bmp");
+	// cli_encrypt(pubKey,inFile,outFile);
+	//  cli_decrypt(privKey,outFile,"decrypted.txt");
 	
 	
 	// big_int_destructor(&n);

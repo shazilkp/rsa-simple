@@ -308,9 +308,9 @@ void write_privkey(unsigned char *modulus_bytes, size_t mod_len,
 
 
 int cli_encrypt(char *key_file,char * input_file, char * output_file){
-    FILE *filePtr,*keyptr;
+    FILE *filePtr;
     unsigned char  *fileBuffer;
-    long filelen,keylen;
+    long filelen;
 
     filePtr = fopen(input_file, "rb");  // Open the file in binary mode
     fseek(filePtr, 0, SEEK_END);          // Jump to the end of the file
@@ -330,8 +330,7 @@ int cli_encrypt(char *key_file,char * input_file, char * output_file){
     BigInt exp;
     size_t mod_len,exp_len;
 
-    read_rsa_key(key_file,&mod_len,&exp_len,&mod,&exp);      //convert punlic key(e,n) into BigInt
-
+    read_rsa_key(key_file,&mod_len,&exp_len,&mod,&exp);      //convert public key(e,n) into BigInt
     encrypt(&input,&exp,&mod,&result);                          //encrypt as BigInt
 
 
@@ -423,43 +422,3 @@ int cli_generate(size_t pq_size,char * pubkey_out, char * privkey_out){
     
     return 1;
 }
-
-// int main(int argc, char *argv[]) {
-//     if (argc < 2) {
-//         fprintf(stderr, "Usage: rsa-simple <command> [options]\n");
-//         return 1;
-//     }
-
-//     char *command = argv[1];
-//     char *key_file = NULL;
-//     char *input_file = NULL;
-//     char *output_file = NULL;
-
-//     if (strcmp(command, "keygen") == 0) {
-//         int bits = (argc >= 3) ? atoi(argv[2]) : 2048;
-//         rsa_keygen(bits);
-//     } else if (strcmp(command, "encrypt") == 0) {
-//             // Simple loop for key-value pairs
-//         for (int i = 2; i < argc; i++) {
-//             if (strcmp(argv[i], "--pub") == 0 && i + 1 < argc) {
-//                 key_file = argv[++i];
-//             } else if (strcmp(argv[i], "-i") == 0 && i + 1 < argc) {
-//                 input_file = argv[++i];
-//             } else if (strcmp(argv[i], "-o") == 0 && i + 1 < argc) {
-//                 output_file = argv[++i];
-//             } else {
-//                 fprintf(stderr, "Unknown or incomplete argument: %s\n", argv[i]);
-//                 return 1;
-//             }
-//         }
-//         cli_encrypt(key_file,input_file,output_file);
-//     } else if (strcmp(command, "decrypt") == 0) {
-//         // parse options like -k, -i, -o
-//     } else {
-//         fprintf(stderr, "Unknown command: %s\n", command);
-//         return 1;
-//     }
-
-//     return 0;
-// }
-
