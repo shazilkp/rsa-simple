@@ -87,7 +87,7 @@ int main(){
 
     char * pubfile = "pubkey_out.txt";
 	char * privfile = "privkey_out.txt";
-	cli_generate(2048,pubfile,privfile);
+	cli_generate(128,pubfile,privfile);
 	// size_t mod_len,exp_len;
 	// BigInt mod,exp,mod2,priv;
 	

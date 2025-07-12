@@ -398,18 +398,15 @@ int cli_generate(size_t pq_size,char * pubkey_out, char * privkey_out){
     BigInt privatekey = {NULL,0,0};
     BigInt publickey = {NULL,0,0};
 
-    generate(&modulus,&publickey,&privatekey,pq_size);
-    // printf("mod = ");
-	// big_int_print(&modulus,2);
 
-	// printf("exp = ");
-	// big_int_print(&publickey,2);
+    generate(&modulus,&publickey,&privatekey,pq_size);
+
     size_t mod_byte_len,pubkey_byte_len,privkey_byte_len;
     unsigned char * mod_byte = big_int_to_byte_array_be(&modulus,&mod_byte_len);
-    for (size_t i = 0; i < mod_byte_len; i++) {
-        printf("%02X", mod_byte[i]);  // print two-digit hex
-    }
-    printf("\n");
+    // for (size_t i = 0; i < mod_byte_len; i++) {
+    //     printf("%02X", mod_byte[i]);  // print two-digit hex
+    // }
+    // printf("\n");
     unsigned char * pubkey_byte = big_int_to_byte_array_be(&publickey,&pubkey_byte_len);
     unsigned char * privkey_byte = big_int_to_byte_array_be(&privatekey,&privkey_byte_len);
 
@@ -419,6 +416,14 @@ int cli_generate(size_t pq_size,char * pubkey_out, char * privkey_out){
 
     write_pubkey(mod_byte,mod_byte_len,pubkey_byte,pubkey_byte_len,pubkey_out);
     write_privkey(mod_byte,mod_byte_len,privkey_byte,privkey_byte_len,privkey_out);
+
+    big_int_destructor(&modulus);
+    big_int_destructor(&privatekey);
+    big_int_destructor(&publickey);
+
+    free(mod_byte);
+    free(pubkey_byte);
+    free(privkey_byte);
     
     return 1;
 }

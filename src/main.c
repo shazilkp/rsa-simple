@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
     if (strcmp(command, "--help") == 0 || strcmp(command, "-h") == 0) {
         printf("Usage: rsa-simple <command> [options]\n\n");
         printf("Commands:\n");
-        printf("  keygen [bits] [pubfile] [privfile]   Generate RSA key pair\n");
+        printf("  keygen --bits BITS --pub PUBFILE --priv PRIVFILE   Generate RSA key pair\n");
         printf("                                       (2048 bits by default)\n");
         printf("                                       (output filenames optional)\n\n");
         printf("  encrypt --pub PUBKEY -i INFILE -o OUTFILE\n");
@@ -43,7 +43,9 @@ int main(int argc, char *argv[]) {
                 return 1;
             }
         }
-        cli_generate(bits / 2, pub_file, priv_file);
+        if (cli_generate(bits / 2, pub_file, priv_file)){
+            printf("Keys generated successfully and stored in %s and %s\n",pub_file,priv_file);
+        }
     } else if (strcmp(command, "encrypt") == 0) {
             // Simple loop for key-value pairs
         for (int i = 2; i < argc; i++) {

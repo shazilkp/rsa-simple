@@ -195,9 +195,14 @@ BigInt big_int_constructor(short sign, size_t size, ...){
 	return number;
 }
 
-void big_int_destructor(BigInt * bignum){
-	free(bignum->integer);
+void big_int_destructor(BigInt *bignum) {
+    if (bignum && bignum->integer) {
+        free(bignum->integer);
+        bignum->integer = NULL;
+        bignum->size = 0;
+    }
 }
+
 
 BigInt big_int_from_uint64_t(uint64_t num){
 	return big_int_constructor(0,2,(uint32_t)(num & MAXVAL),(uint32_t)(num >> 32));
@@ -734,6 +739,9 @@ int big_int_div(BigInt *u, BigInt *v,BigInt *q, BigInt *r){
 	
 	long long t, k;
    	int i, j;
+
+	if (q->integer) free(q->integer);
+	if (r && r->integer) free(r->integer);
    	
    	
 	q->integer = malloc(sizeof(uint32_t) * sizeQ);
@@ -744,7 +752,9 @@ int big_int_div(BigInt *u, BigInt *v,BigInt *q, BigInt *r){
 		r->size = sizeR;
 	}
 	
-	if(m < n || n <=0 || v->integer[n-1] == 0){
+	if (m < n || n <= 0 || v->integer[n - 1] == 0) {
+		free(q->integer);
+		if (r) free(r->integer);
 		return 1;
 	}
 	
@@ -877,7 +887,7 @@ int big_int_div(BigInt *u, BigInt *v,BigInt *q, BigInt *r){
 }
 
 int big_int_mod(BigInt *a,BigInt *b, BigInt * c){
-	BigInt t;
+	BigInt t = {NULL,0,0};
 	int res =  big_int_div(a,b,&t,c);
 	big_int_destructor(&t);
 	return res;
@@ -1192,6 +1202,7 @@ void big_int_modinv(BigInt *a, BigInt *b, BigInt *c){
 	big_int_destructor(&y);
 	big_int_destructor(&gcd);
 	big_int_destructor(&one);
+	big_int_destructor(&r);
 
 }
 

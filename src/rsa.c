@@ -48,8 +48,10 @@ int big_int_random(BigInt *a, size_t bits){
     // printf(" byte array after processing generated = ");
     // big_int_print(&t,0);
     // printf("\n");
-
+    big_int_destructor(a);
     *a = big_int_copy(t);
+    big_int_destructor(&t);
+    free(buff);
     return 0;
 
 }
@@ -67,6 +69,7 @@ int big_int_random_range(BigInt *a, BigInt * upper_bound){
     BigInt b = {NULL,0,0};
     do{
         if(big_int_random(&b,bits) == -1){
+            big_int_destructor(&b);
             return -1;
         }
         // printf("candidate = ");
@@ -74,7 +77,9 @@ int big_int_random_range(BigInt *a, BigInt * upper_bound){
         // printf("\n");
     }
     while (big_int_compare(&b,upper_bound,0) >= 0);
+    big_int_destructor(a);
     *a = big_int_copy(b);
+    big_int_destructor(&b);
 
     return 0;
 }
@@ -176,18 +181,21 @@ int big_int_prime_check(BigInt *n, size_t iterations) {
 int big_int_generate_prime(size_t bits, BigInt * a){
     int found = 0;
     int c = 0;
+    BigInt random = {NULL, 0, 0};
     while(!found){
-        BigInt random = {NULL, 0, 0};
         big_int_random(&random,bits);
         random.integer[0] |= 0x1;
 
         if(big_int_prime_check(&random,40)){
             found = 1;
+            big_int_destructor(a);
             *a = big_int_copy(random);
+            big_int_destructor(&random);
         }
         c++;
     }
-    printf("took %d trials\n",c);
+    
+    // printf("took %d trials\n",c);
     return 1;
 }
 
@@ -224,10 +232,18 @@ int generate(BigInt *n, BigInt *e, BigInt *d, size_t bits){
             found = 1;
         }
     }
+    big_int_destructor(d); 
     *d = big_int_copy(d_candidate);
-
-
     big_int_modinv(d,&phi_n,e);
+
+
+    big_int_destructor(&p);
+    big_int_destructor(&q);
+    big_int_destructor(&phi_n);
+    big_int_destructor(&one);
+    big_int_destructor(&p_minus_one);
+    big_int_destructor(&q_minus_one);
+    big_int_destructor(&d_candidate);
     return 1;
 }
 
