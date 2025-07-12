@@ -2,7 +2,7 @@
  
 ![Language](https://img.shields.io/badge/language-C-blue)
 
-A command-line RSA tool written in C, using a **custom-built multiple-precision arithmetic (BigInt)** library. The RSA implementation is based on the original RSA paper.
+A command-line RSA tool written in C, using a **custom-built arbitrary-precision arithmetic (BigInt)** library. The RSA implementation is based on the original RSA paper.
 
 ---
 ## Disclaimer
