@@ -5,7 +5,13 @@
 A command-line RSA tool written in C, using a **custom-built multiple-precision arithmetic (BigInt)** library. The RSA implementation is based on the original RSA paper.
 
 ---
+## Disclaimer
 
+This implementation is **strictly for educational use**.  
+It is **not cryptographically secure** and should **not be used in production systems**.  
+Use of this code in real-world applications may lead to **serious security vulnerabilities**.
+
+---
 ## Project Structure
 
 ```
@@ -171,3 +177,4 @@ This project is licensed under the [MIT License](./LICENSE).
 ---
 
 > Made with ❤️ and a lot of `malloc()` + `free()` debugging.
+
